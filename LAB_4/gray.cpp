@@ -2,7 +2,7 @@
 #include <limits>
 #include <algorithm>
 
-struct Individual {
+struct Individual_gray {
     std::vector<unsigned int> geno_int; // Gray-coded chromosome (N integers)
     std::vector<double> x;              // Decoded real-valued solution (N doubles)
     double fitness;                     // Function value (lower is better)
@@ -24,8 +24,8 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
     f_calls_gray = 0;
 
     // --- 1. INITIALIZATION ---
-    std::vector<Individual> population(POPULATION_SIZE);
-    std::vector<Individual> next_population;
+    std::vector<Individual_gray> population(POPULATION_SIZE);
+    std::vector<Individual_gray> next_population;
     next_population.reserve(POPULATION_SIZE);
 
     for (int i = 0; i < POPULATION_SIZE; ++i) {
@@ -61,8 +61,8 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
     for (int gen = 0; gen < MAX_GENERATIONS && f_calls_gray < MAX_F_CALLS; ++gen) {
         
         // --- Selection (Tournament Selection - size 5) ---
-        auto select_parent = [&]() -> const Individual& {
-            const Individual* best_ind = nullptr;
+        auto select_parent = [&]() -> const Individual_gray& {
+            const Individual_gray* best_ind = nullptr;
             for (int i = 0; i < 5; ++i) { // Tournament size 5
                 int idx = dis_pop(rng);
                 if (best_ind == nullptr || population[idx].fitness < best_ind->fitness) {
@@ -75,7 +75,7 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
         // --- Elitism (Carry the best individual to the next generation) ---
         next_population.clear();
         next_population.reserve(POPULATION_SIZE);
-        const Individual* elite = &population[0];
+        const Individual_gray* elite = &population[0];
         for (const auto& ind : population) {
             if (ind.fitness < elite->fitness) {
                 elite = &ind;
@@ -87,11 +87,11 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
         while (next_population.size() < (size_t)POPULATION_SIZE && f_calls_gray < MAX_F_CALLS) {
             
             // Select two parents
-            const Individual& parent1 = select_parent();
-            const Individual& parent2 = select_parent();
+            const Individual_gray& parent1 = select_parent();
+            const Individual_gray& parent2 = select_parent();
             
-            Individual offspring1 = parent1;
-            Individual offspring2 = parent2;
+            Individual_gray offspring1 = parent1;
+            Individual_gray offspring2 = parent2;
 
             // Determine whether to do crossover
             if (dis_prob(rng) < CROSSOVER_RATE) {
@@ -122,7 +122,7 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
             }
             
             // --- Mutation (Bit-Flip) ---
-            auto mutate = [&](Individual& ind) {
+            auto mutate = [&](Individual_gray& ind) {
                 for (int d = 0; d < N; ++d) {
                     for (int b = 0; b < bits_per_dim; ++b) {
                         if (dis_prob(rng) < MUTATION_RATE) {
@@ -136,7 +136,7 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id)
             mutate(offspring2);
 
             // --- Evaluation and Replacement ---
-            auto evaluate_and_add = [&](Individual& ind) -> bool {
+            auto evaluate_and_add = [&](Individual_gray& ind) -> bool {
                 if (f_calls_gray >= MAX_F_CALLS) return false; // defensive
                 
                 double sumsq = 0.0, sumcos = 0.0;

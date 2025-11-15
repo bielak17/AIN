@@ -1,7 +1,7 @@
-//compile g++ -fdiagnostics-color=always -g main.cpp gray.cpp binary.cpp functions.cpp -o main.exe
+//compile g++ -fdiagnostics-color=always -g main.cpp gray.cpp real.cpp functions.cpp -o main.exe
 
 #include "gray.h"
-#include "binary.h"
+#include "real.h"
 
 #include <iostream>
 #include <fstream>
@@ -12,6 +12,7 @@
 
 int main() 
 {
+    std::cout << "Starting experiments for Real and Gray encoding...\n"<<std::endl;
     std::ios::sync_with_stdio(false);
     std::cin.tie(nullptr);
 
@@ -49,6 +50,7 @@ int main()
             of << "\n";
         }
         of.close();
+        std::cout << fname.str() << " file created." << std::endl;
     }
 
     // Running experiments for Real encoding
@@ -57,7 +59,7 @@ int main()
         for (int run = 0; run < REPEATS; ++run) 
         {
             std::mt19937 run_rng(rd() + run * 7919 + N * 101);
-            RunResult rr = run_single_real(BITS_PER_DIM, run_rng, func_id);
+            RunResult rr = run_single_real(run_rng, func_id);
             all_runs[run] = std::move(rr.running_best);
         }
 
@@ -83,6 +85,7 @@ int main()
             of << "\n";
         }
         of.close();
+        std::cout << fname.str() << " file created." << std::endl;
     }
 
     std::cout << "All four experiments completed. CSV files saved in current folder.\n";
