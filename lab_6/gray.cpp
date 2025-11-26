@@ -12,6 +12,8 @@ int f_calls_gray = 0;
 
 RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id, int dims) 
 {
+    int pop_size = POPULATION_SIZE*dims;
+    int max_gens = MAX_GENERATIONS;
     unsigned int maxInt = (bits_per_dim == 32) ? 0xFFFFFFFFu : ((1u << bits_per_dim) - 1u);
     double domain_min = 0;
     double domain_max = 0;
@@ -32,18 +34,18 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id, int 
     }
     
     std::uniform_real_distribution<> dis_prob(0.0, 1.0);
-    std::uniform_int_distribution<> dis_pop(0, POPULATION_SIZE - 1);
+    std::uniform_int_distribution<> dis_pop(0, pop_size - 1);
 
     std::vector<double> running_best(MAX_F_CALLS * dims, std::numeric_limits<double>::max());
     double overall_best_F = std::numeric_limits<double>::max();
     f_calls_gray = 0;
 
     // --- 1. INITIALIZATION ---
-    std::vector<Individual_gray> population(POPULATION_SIZE);
+    std::vector<Individual_gray> population(pop_size);
     std::vector<Individual_gray> next_population;
-    next_population.reserve(POPULATION_SIZE);
+    next_population.reserve(pop_size);
 
-    for (int i = 0; i < POPULATION_SIZE; ++i) {
+    for (int i = 0; i < pop_size; ++i) {
         population[i].geno_int.resize(dims);
         population[i].x.resize(dims);
         double sumsq = 0.0, sumcos = 0.0;
@@ -73,12 +75,12 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id, int 
     }
     
     // --- 2. MAIN GENERATIONAL LOOP ---
-    for (int gen = 0; gen < MAX_GENERATIONS && f_calls_gray < MAX_F_CALLS * dims; ++gen) {
+    for (int gen = 0; gen < max_gens && f_calls_gray < MAX_F_CALLS * dims; ++gen) {
         
-        // --- Selection (Tournament Selection - size 5) ---
+        // --- Selection (Tournament Selection - size dim) ---
         auto select_parent = [&]() -> const Individual_gray& {
             const Individual_gray* best_ind = nullptr;
-            for (int i = 0; i < 5; ++i) { // Tournament size 5
+            for (int i = 0; i < dims; ++i) { // Tournament size dim
                 int idx = dis_pop(rng);
                 if (best_ind == nullptr || population[idx].fitness < best_ind->fitness) {
                     best_ind = &population[idx];
@@ -89,17 +91,28 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id, int 
 
         // --- Elitism (Carry the best individual to the next generation) ---
         next_population.clear();
-        next_population.reserve(POPULATION_SIZE);
-        const Individual_gray* elite = &population[0];
-        for (const auto& ind : population) {
-            if (ind.fitness < elite->fitness) {
-                elite = &ind;
-            }
+        next_population.reserve(pop_size);
+        //const Individual_gray* elite = &population[0];
+        //for (const auto& ind : population) {
+        //    if (ind.fitness < elite->fitness) {
+        //        elite = &ind;
+        //    }
+        //}
+        //next_population.push_back(*elite);
+
+        // --- Elitism (Carry the top 2% individuals to the next generation) ---
+        int elitism_count = std::max(1, (int)std::ceil(0.02 * pop_size));
+        // sort a copy of the population by fitness (ascending)
+        std::vector<Individual_gray> sorted_pop = population;
+        std::sort(sorted_pop.begin(), sorted_pop.end(), [](const Individual_gray& a, const Individual_gray& b){
+            return a.fitness < b.fitness;
+        });
+        for (int i = 0; i < elitism_count && (int)next_population.size() < pop_size; ++i) {
+            next_population.push_back(sorted_pop[i]);
         }
-        next_population.push_back(*elite);
 
         // --- Crossover & Mutation ---
-        while (next_population.size() < (size_t)POPULATION_SIZE && f_calls_gray < MAX_F_CALLS * dims) {
+        while (next_population.size() < (size_t)pop_size && f_calls_gray < MAX_F_CALLS * dims) {
             
             // Select two parents
             const Individual_gray& parent1 = select_parent();
@@ -178,10 +191,10 @@ RunResult run_single_gray(int bits_per_dim, std::mt19937 &rng, int func_id, int 
             };
 
             // Add offspring to the next generation while respecting population size and MAX_F_CALLS * dims
-            if (next_population.size() < (size_t)POPULATION_SIZE) {
+            if (next_population.size() < (size_t)pop_size) {
                 if (!evaluate_and_add(offspring1)) break;
             }
-            if (next_population.size() < (size_t)POPULATION_SIZE) {
+            if (next_population.size() < (size_t)pop_size) {
                 if (!evaluate_and_add(offspring2)) break;
             }
         }

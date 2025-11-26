@@ -98,10 +98,23 @@ int main()
             
             of.close();
             std::cout << fname.str() << " file created." << std::endl;
+
+            // Compute average of last function-call values across runs
+            double sum_last = 0.0;
+            int count_last = 0;
+            for (int r = 0; r < REPEATS; ++r) {
+            if (!all_runs[r].empty()) {
+                    sum_last += all_runs[r].back();
+                    ++count_last;
+                }
+            }
+            double avg_last = (count_last > 0) ? (sum_last / count_last) : 0.0;
+            std::cout << "Average of last function calls (real func " << func_id << " dim " << current_dim << "): " << avg_last << std::endl;
         }
     }
 
     std::cout << "All four experiments completed. CSV files saved in current folder.\n";
+    system("pause");
     return 0;
 }
 

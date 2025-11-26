@@ -18,10 +18,10 @@ const int MAX_F_CALLS = 10000;                  // evaluations per run
 const int REPEATS = 100;                        // number of runs
 const int N[] = {5,15,30};                      // dimension
 
-const int POPULATION_SIZE = 100;
-const int MAX_GENERATIONS = 100;
+const int POPULATION_SIZE = 50;
+const int MAX_GENERATIONS = 200;
 const double CROSSOVER_RATE = 0.9;
-const double MUTATION_RATE = 0.01;
+const double MUTATION_RATE = 0.03;
 
 unsigned int binary_from_gray(unsigned int);
 

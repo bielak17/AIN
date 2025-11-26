@@ -75,7 +75,7 @@ double f_whitley(const std::vector<double>& x) {
     int n = static_cast<int>(x.size());
     for (int i = 0; i < n; ++i) {
         for (int j = 0; j < n; ++j) {
-            double a = x[i]*x[i] - x[j];
+            double a = x[i] - x[j]*x[j];
             double b = 1.0 - x[j];
             double inner = 100.0 * (a * a) + (b * b);
             double term = (inner * inner) / 4000.0 - std::cos(inner) + 1.0;
