@@ -16,10 +16,7 @@ using namespace std;
 enum class ZDTType { ZDT1, ZDT2, ZDT3,ZDT4, ZDT6 };
 
 const int MAX_F_CALLS = 100001;
-const double DOMAIN_MIN = 0.0;
-const double DOMAIN_MAX = 1.0;
 const int POPULATION_SIZE = 100;
-const int MAX_GENERATIONS = 100;
 const double CROSSOVER_RATE = 0.93;
 const double MUTATION_RATE = 0.05;
 const int DIMS[3] = {10,30,50};
